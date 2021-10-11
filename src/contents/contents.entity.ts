@@ -43,7 +43,7 @@ export class Image extends TimeRecord {
   @Column()
   contentId: number;
 
-  @ManyToOne(() => Content, { eager: true })
+  @ManyToOne(() => Content)
   @JoinColumn({ name: 'content_id' })
-  content: Content;
+  content?: Promise<Content>;
 }
