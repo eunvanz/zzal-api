@@ -1,4 +1,12 @@
 {
   "singleQuote": true,
-  "trailingComma": "all"
+  "trailingComma": "all",
+  "importOrder": [
+    "^(?!\\.).*(?<!.svg|.png|.css|.scss)$",
+    "^\\..*(?<!.svg|.png|.css|.scss)$",
+    "^(?!\\.).*.scss$",
+    "^\\..*.scss$",
+    ".*(.png|.svg)$",
+    ".*"
+  ]
 }
