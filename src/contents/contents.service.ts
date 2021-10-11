@@ -33,8 +33,9 @@ export class ContentsService {
       path: createContentDto.path,
     });
 
-    let contentId = existingContent.id;
+    let contentId;
     if (existingContent) {
+      contentId = existingContent.id;
       await trxContentRepository.update(contentId, {
         ...createContentDto,
       });
@@ -51,6 +52,13 @@ export class ContentsService {
       contentId: contentId,
     }));
 
+    if (existingContent) {
+      await trxImageRepository.delete({ contentId });
+    }
     await Promise.all(newImages.map((image) => trxImageRepository.save(image)));
+  }
+
+  async getByPath(path: string) {
+    return await this.contentRepository.findOneOrFail({ path });
   }
 }

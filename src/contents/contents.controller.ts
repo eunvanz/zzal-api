@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -20,5 +22,10 @@ export class ContentsController {
     @Body() createContentDto: CreateContentDto,
   ) {
     this.contentsService.save(createContentDto, files);
+  }
+
+  @Get()
+  async getByPath(@Query('path') path: string) {
+    return this.contentsService.getByPath(path);
   }
 }
