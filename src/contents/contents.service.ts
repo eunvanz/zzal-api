@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import sizeOf from 'image-size';
 import { S3Service } from 'src/s3/s3.service';
 import { Repository, Transaction, TransactionRepository } from 'typeorm';
 import { Content, Image } from './contents.entity';
@@ -33,7 +34,7 @@ export class ContentsService {
       path: createContentDto.path,
     });
 
-    let contentId;
+    let contentId = undefined;
     if (existingContent) {
       contentId = existingContent.id;
       await trxContentRepository.update(contentId, {
@@ -46,10 +47,15 @@ export class ContentsService {
       contentId = savedContent.id;
     }
 
+    const sizes = files.map((file) => sizeOf(file.buffer));
+
     const newImages = uploadResult.map((result, index) => ({
       url: result.Location,
       seq: index + 1,
       contentId: contentId,
+      type: files[index].mimetype,
+      width: sizes[index].width,
+      height: sizes[index].height,
     }));
 
     if (existingContent) {
