@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import sizeOf from 'image-size';
 import { S3Service } from 'src/s3/s3.service';
@@ -65,6 +69,15 @@ export class ContentsService {
   }
 
   async getByPath(path: string) {
-    return await this.contentRepository.findOneOrFail({ path });
+    try {
+      return await this.contentRepository.findOneOrFail({ path });
+    } catch {
+      throw new NotFoundException();
+    }
+  }
+
+  async checkIsExistingPath(path: string) {
+    const content = await this.contentRepository.findOne({ path });
+    return !!content;
   }
 }
