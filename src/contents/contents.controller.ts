@@ -29,7 +29,7 @@ export class ContentsController {
     return this.contentsService.getByPath(path);
   }
 
-  @Get('exist')
+  @Get('existing')
   async checkIsExistingPath(@Query('path') path: string) {
     return this.contentsService.checkIsExistingPath(path);
   }
