@@ -9,7 +9,7 @@ async function bootstrap() {
     cors: {
       origin: isDev
         ? 'http://localhost:3000'
-        : process.env.SERVICE_BASE_URL || 'https://zzal.me',
+        : process.env.SERVICE_BASE_URL || 'https://www.zzal.me',
       credentials: true,
     },
     logger: ['error', 'warn', 'log'],
