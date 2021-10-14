@@ -42,6 +42,7 @@ export class ContentsService {
     if (existingContent) {
       contentId = existingContent.id;
       await trxContentRepository.delete(contentId);
+      await trxImageRepository.delete({ contentId });
     }
     const savedContent = await trxContentRepository.save({
       ...createContentDto,
@@ -59,9 +60,6 @@ export class ContentsService {
       height: sizes[index].height,
     }));
 
-    if (existingContent) {
-      await trxImageRepository.delete({ contentId });
-    }
     await Promise.all(newImages.map((image) => trxImageRepository.save(image)));
   }
 
