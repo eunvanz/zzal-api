@@ -21,6 +21,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  await app.listen(4000);
+  await app.listen(isDev ? 4000 : 8080);
 }
 bootstrap();
