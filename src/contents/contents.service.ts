@@ -41,8 +41,8 @@ export class ContentsService {
     let contentId = undefined;
     if (existingContent) {
       contentId = existingContent.id;
-      await trxContentRepository.delete(contentId);
       await trxImageRepository.delete({ contentId });
+      await trxContentRepository.delete(contentId);
     }
     const savedContent = await trxContentRepository.save({
       ...createContentDto,
