@@ -41,15 +41,12 @@ export class ContentsService {
     let contentId = undefined;
     if (existingContent) {
       contentId = existingContent.id;
-      await trxContentRepository.update(contentId, {
-        ...createContentDto,
-      });
-    } else {
-      const savedContent = await trxContentRepository.save({
-        ...createContentDto,
-      });
-      contentId = savedContent.id;
+      await trxContentRepository.delete(contentId);
     }
+    const savedContent = await trxContentRepository.save({
+      ...createContentDto,
+    });
+    contentId = savedContent.id;
 
     const sizes = files.map((file) => sizeOf(file.buffer));
 

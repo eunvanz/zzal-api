@@ -52,7 +52,7 @@ export class Image extends TimeRecord {
   @Column()
   height: number;
 
-  @ManyToOne(() => Content)
+  @ManyToOne(() => Content, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'content_id' })
   content?: Promise<Content>;
 }
