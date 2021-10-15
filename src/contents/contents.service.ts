@@ -65,7 +65,11 @@ export class ContentsService {
 
   async getByPath(path: string) {
     try {
-      return await this.contentRepository.findOneOrFail({ path });
+      const content = await this.contentRepository.findOneOrFail({ path });
+      await this.contentRepository.update(content.id, {
+        viewCnt: ++content.viewCnt,
+      });
+      return content;
     } catch {
       throw new NotFoundException();
     }

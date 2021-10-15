@@ -27,6 +27,9 @@ export class Content extends TimeRecord {
 
   @OneToMany(() => Image, (image) => image.content, { eager: true })
   images: Image[];
+
+  @Column({ default: 0 })
+  viewCnt: number;
 }
 
 @Entity()
