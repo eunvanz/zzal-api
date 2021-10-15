@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
 import { nanoid } from 'nanoid';
+import path from 'path';
 
 @Injectable()
 export class S3Service {
@@ -15,7 +16,7 @@ export class S3Service {
 
   async upload(file: Express.Multer.File, prefix?: string) {
     const { originalname } = file;
-    const fileExtension = originalname.split('.').pop();
+    const fileExtension = path.extname(originalname);
     const fileName = `${prefix || nanoid(4)}_${Date.now()}.${fileExtension}`;
     return (await this.uploadS3(
       file.buffer,
