@@ -112,6 +112,8 @@ export class ContentsService {
 
     const index = random(contents.length - 1);
 
-    return contents[index];
+    const { id } = contents[index];
+
+    return await this.contentRepository.findOne(id);
   }
 }
