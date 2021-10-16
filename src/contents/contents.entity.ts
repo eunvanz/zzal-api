@@ -4,6 +4,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -33,7 +34,8 @@ export class Content extends TimeRecord {
   @Column({ default: 0 })
   viewCnt: number;
 
-  @ManyToMany(() => Tag, (tag) => tag.id, { cascade: true })
+  @ManyToMany(() => Tag, { cascade: true })
+  @JoinTable()
   tags: Tag[];
 }
 
