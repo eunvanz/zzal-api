@@ -1,11 +1,11 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import sizeOf from 'image-size';
+import { random } from 'lodash';
 import { S3Service } from 'src/s3/s3.service';
 import { Tag } from 'src/tags/tags.entity';
 import { Repository, Transaction, TransactionRepository } from 'typeorm';
@@ -19,6 +19,8 @@ export class ContentsService {
     private readonly contentRepository: Repository<Content>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    @InjectRepository(Tag)
+    private readonly tagRepository: Repository<Tag>,
     private readonly s3Service: S3Service,
   ) {}
 
@@ -94,5 +96,22 @@ export class ContentsService {
   async checkIsExistingPath(path: string) {
     const content = await this.contentRepository.findOne({ path });
     return !!content;
+  }
+
+  async getRandomOneByTag(tagName: string) {
+    const tag = await this.tagRepository.findOne({ name: tagName });
+
+    if (!tag) {
+      throw new NotFoundException();
+    }
+
+    const contents = await tag.contents;
+    if (!contents.length) {
+      throw new NotFoundException();
+    }
+
+    const index = random(contents.length - 1);
+
+    return contents[index];
   }
 }

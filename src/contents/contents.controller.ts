@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   UploadedFiles,
@@ -32,5 +33,10 @@ export class ContentsController {
   @Get('existing')
   async checkIsExistingPath(@Query('path') path: string) {
     return this.contentsService.checkIsExistingPath(path);
+  }
+
+  @Get('random/:tag')
+  async getRandomOneByTag(@Param('tag') tagName: string) {
+    return this.contentsService.getRandomOneByTag(tagName);
   }
 }
