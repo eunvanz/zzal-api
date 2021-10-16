@@ -11,4 +11,8 @@ export class CreateContentDto {
   @IsOptional()
   @IsString()
   description: string;
+
+  @IsOptional()
+  @IsString()
+  tags: string;
 }

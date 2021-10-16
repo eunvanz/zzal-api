@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import sizeOf from 'image-size';
 import { S3Service } from 'src/s3/s3.service';
+import { Tag } from 'src/tags/tags.entity';
 import { Repository, Transaction, TransactionRepository } from 'typeorm';
 import { Content, Image } from './contents.entity';
 import { CreateContentDto } from './dto/create-content-dto';
@@ -27,6 +28,7 @@ export class ContentsService {
     files: Express.Multer.File[],
     @TransactionRepository(Content) trxContentRepository?: Repository<Content>,
     @TransactionRepository(Image) trxImageRepository?: Repository<Image>,
+    @TransactionRepository(Tag) trxTagRepository?: Repository<Tag>,
   ) {
     if (!files) {
       throw new BadRequestException('Files are required.');
@@ -45,9 +47,21 @@ export class ContentsService {
       await trxImageRepository.delete({ contentId });
       await trxContentRepository.delete(contentId);
     }
+
+    const tagNames = createContentDto.tags.split(',').map((tag) => tag.trim());
+
+    const existingTags = await trxTagRepository.find({
+      where: tagNames.map((name) => ({ name })),
+    });
+
+    const newTags = tagNames.filter((name) =>
+      existingTags.every((existingTags) => existingTags.name !== name),
+    );
+
     const savedContent = await trxContentRepository.save({
       ...createContentDto,
       viewCnt: existingContent?.viewCnt || 0,
+      tags: [...existingTags, ...newTags.map((name) => ({ name }))],
     });
     contentId = savedContent.id;
 
