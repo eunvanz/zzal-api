@@ -1,8 +1,10 @@
 import { TimeRecord } from 'src/entities/time-record.entity';
+import { Tag } from 'src/tags/tags.entity';
 import {
   Column,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -30,6 +32,9 @@ export class Content extends TimeRecord {
 
   @Column({ default: 0 })
   viewCnt: number;
+
+  @ManyToMany(() => Tag, (tag) => tag.id, { cascade: true })
+  tags: Tag[];
 }
 
 @Entity()
