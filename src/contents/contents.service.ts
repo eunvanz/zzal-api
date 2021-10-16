@@ -47,6 +47,7 @@ export class ContentsService {
     }
     const savedContent = await trxContentRepository.save({
       ...createContentDto,
+      viewCnt: existingContent?.viewCnt || 0,
     });
     contentId = savedContent.id;
 
