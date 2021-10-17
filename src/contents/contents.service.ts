@@ -43,13 +43,6 @@ export class ContentsService {
       path: createContentDto.path,
     });
 
-    let contentId = undefined;
-    if (existingContent) {
-      contentId = existingContent.id;
-      await trxImageRepository.delete({ contentId });
-      await trxContentRepository.delete(contentId);
-    }
-
     const tagNames = createContentDto.tags.split(',').map((tag) => tag.trim());
 
     const existingTags = await trxTagRepository.find({
@@ -60,12 +53,23 @@ export class ContentsService {
       existingTags.every((existingTags) => existingTags.name !== name),
     );
 
-    const savedContent = await trxContentRepository.save({
-      ...createContentDto,
-      viewCnt: existingContent?.viewCnt || 0,
-      tags: [...existingTags, ...newTags.map((name) => ({ name }))],
-    });
-    contentId = savedContent.id;
+    const tags = [...existingTags, ...newTags.map((name) => ({ name }))];
+
+    let contentId = existingContent?.id;
+    if (existingContent) {
+      contentId = existingContent.id;
+      await trxContentRepository.update(contentId, {
+        ...createContentDto,
+        tags,
+      });
+      await trxImageRepository.delete({ contentId });
+    } else {
+      const savedContent = await trxContentRepository.save({
+        ...createContentDto,
+        tags,
+      });
+      contentId = savedContent.id;
+    }
 
     const sizes = files.map((file) => sizeOf(file.buffer));
 
