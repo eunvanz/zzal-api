@@ -60,10 +60,12 @@ export class ContentsService {
       existingTags.every((existingTags) => existingTags.name !== name),
     );
 
+    const tags = [...existingTags, ...newTags.map((name) => ({ name }))];
+
     const savedContent = await trxContentRepository.save({
       ...createContentDto,
       viewCnt: existingContent?.viewCnt || 0,
-      tags: [...existingTags, ...newTags.map((name) => ({ name }))],
+      tags,
     });
     contentId = savedContent.id;
 
@@ -79,6 +81,61 @@ export class ContentsService {
     }));
 
     await Promise.all(newImages.map((image) => trxImageRepository.save(image)));
+  }
+
+  @Transaction()
+  async update(
+    contentId: number,
+    createContentDto: CreateContentDto,
+    files: Express.Multer.File[],
+    @TransactionRepository(Content) trxContentRepository?: Repository<Content>,
+    @TransactionRepository(Image) trxImageRepository?: Repository<Image>,
+    @TransactionRepository(Tag) trxTagRepository?: Repository<Tag>,
+  ) {
+    const existingContent = await trxContentRepository.findOne(contentId);
+    if (!existingContent) {
+      throw new NotFoundException();
+    }
+
+    const tagNames = createContentDto.tags.split(',').map((tag) => tag.trim());
+
+    const existingTags = await trxTagRepository.find({
+      where: tagNames.map((name) => ({ name })),
+    });
+
+    const newTags = tagNames.filter((name) =>
+      existingTags.every((existingTags) => existingTags.name !== name),
+    );
+
+    const tags = [...existingTags, ...newTags.map((name) => ({ name }))];
+
+    await trxContentRepository.update(contentId, {
+      ...createContentDto,
+      tags,
+    });
+
+    if (files) {
+      await trxImageRepository.delete({ contentId });
+
+      const uploadResult = await Promise.all(
+        files.map((file) => this.s3Service.upload(file, createContentDto.path)),
+      );
+
+      const sizes = files.map((file) => sizeOf(file.buffer));
+
+      const newImages = uploadResult.map((result, index) => ({
+        url: result.Location,
+        seq: index + 1,
+        contentId: contentId,
+        type: files[index].mimetype,
+        width: sizes[index].width,
+        height: sizes[index].height,
+      }));
+
+      await Promise.all(
+        newImages.map((image) => trxImageRepository.save(image)),
+      );
+    }
   }
 
   async getByPath(path: string) {

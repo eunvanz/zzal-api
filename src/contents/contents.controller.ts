@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   UploadedFiles,
   UseInterceptors,
@@ -38,5 +39,15 @@ export class ContentsController {
   @Get('random/:tag')
   async getRandomOneByTag(@Param('tag') tagName: string) {
     return this.contentsService.getRandomOneByTag(tagName);
+  }
+
+  @Put(':contentId')
+  @UseInterceptors(FilesInterceptor('images'))
+  async update(
+    @Param('contentId') contentId: number,
+    @Body() createContentDto: CreateContentDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    this.contentsService.update(contentId, createContentDto, files);
   }
 }
