@@ -34,7 +34,7 @@ export class Content extends TimeRecord {
   @Column({ default: 0 })
   viewCnt: number;
 
-  @ManyToMany(() => Tag, (tag) => tag.contents, { cascade: true, eager: true })
+  @ManyToMany(() => Tag, (tag) => tag.contents, { eager: true, cascade: true })
   @JoinTable()
   tags: Tag[];
 }

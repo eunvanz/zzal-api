@@ -50,15 +50,19 @@ export class ContentsService {
       await trxContentRepository.delete(contentId);
     }
 
-    const tagNames = createContentDto.tags.split(',').map((tag) => tag.trim());
+    const tagNames =
+      createContentDto.tags?.split(',').map((tag) => tag.trim()) || [];
 
     const existingTags = await trxTagRepository.find({
       where: tagNames.map((name) => ({ name })),
     });
 
-    const newTags = tagNames.filter((name) =>
-      existingTags.every((existingTags) => existingTags.name !== name),
-    );
+    const newTags =
+      tagNames.length > 0
+        ? tagNames.filter((name) =>
+            existingTags.every((existingTags) => existingTags.name !== name),
+          )
+        : [];
 
     const tags = [...existingTags, ...newTags.map((name) => ({ name }))];
 
@@ -103,18 +107,25 @@ export class ContentsService {
       where: tagNames.map((name) => ({ name })),
     });
 
-    const newTags = tagNames.filter((name) =>
-      existingTags.every((existingTags) => existingTags.name !== name),
+    const newTags =
+      tagNames.length > 0
+        ? tagNames.filter((name) =>
+            existingTags.every((existingTags) => existingTags.name !== name),
+          )
+        : [];
+
+    const createdNewTags = await Promise.all(
+      newTags.map((name) => trxTagRepository.save({ name })),
     );
 
-    const tags = [...existingTags, ...newTags.map((name) => ({ name }))];
-
-    await trxContentRepository.update(contentId, {
+    const updatedContent = {
+      ...existingContent,
       ...createContentDto,
-      tags,
-    });
+      tags: [...existingTags, ...createdNewTags],
+    };
+    await trxContentRepository.save(updatedContent);
 
-    if (files) {
+    if (files.length) {
       await trxImageRepository.delete({ contentId });
 
       const uploadResult = await Promise.all(

@@ -14,6 +14,7 @@ export class S3Service {
   }
 
   async upload(file: Express.Multer.File, prefix?: string) {
+    console.log('===== file', file);
     const { originalname } = file;
     const fileExtension = originalname.split('.').pop();
     const fileName = `${prefix || nanoid(4)}_${Date.now()}.${fileExtension}`;
