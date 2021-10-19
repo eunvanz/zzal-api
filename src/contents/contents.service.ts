@@ -53,9 +53,12 @@ export class ContentsService {
     const tagNames =
       createContentDto.tags?.split(',').map((tag) => tag.trim()) || [];
 
-    const existingTags = await trxTagRepository.find({
-      where: tagNames.map((name) => ({ name })),
-    });
+    const existingTags =
+      tagNames.length > 0
+        ? await trxTagRepository.find({
+            where: tagNames.map((name) => ({ name })),
+          })
+        : [];
 
     const newTags =
       tagNames.length > 0
@@ -101,11 +104,15 @@ export class ContentsService {
       throw new NotFoundException();
     }
 
-    const tagNames = createContentDto.tags.split(',').map((tag) => tag.trim());
+    const tagNames =
+      createContentDto.tags?.split(',').map((tag) => tag.trim()) || [];
 
-    const existingTags = await trxTagRepository.find({
-      where: tagNames.map((name) => ({ name })),
-    });
+    const existingTags =
+      tagNames.length > 0
+        ? await trxTagRepository.find({
+            where: tagNames.map((name) => ({ name })),
+          })
+        : [];
 
     const newTags =
       tagNames.length > 0
