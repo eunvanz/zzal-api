@@ -36,7 +36,12 @@ export class ContentsService {
       throw new BadRequestException('Files are required.');
     }
     const uploadResult = await Promise.all(
-      files.map((file) => this.s3Service.upload(file, createContentDto.path)),
+      files.map((file, index) =>
+        this.s3Service.upload(
+          file,
+          `${createContentDto.path}${index === 0 ? '_thumbnail' : ''}`,
+        ),
+      ),
     );
 
     const existingContent = await trxContentRepository.findOne({
@@ -136,7 +141,12 @@ export class ContentsService {
       await trxImageRepository.delete({ contentId });
 
       const uploadResult = await Promise.all(
-        files.map((file) => this.s3Service.upload(file, createContentDto.path)),
+        files.map((file, index) =>
+          this.s3Service.upload(
+            file,
+            `${createContentDto.path}${index === 0 ? '_thumbnail' : ''}`,
+          ),
+        ),
       );
 
       const sizes = files.map((file) => sizeOf(file.buffer));
