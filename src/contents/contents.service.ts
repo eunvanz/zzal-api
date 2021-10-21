@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import sizeOf from 'image-size';
 import { random } from 'lodash';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { S3Service } from 'src/s3/s3.service';
 import { Tag } from 'src/tags/tags.entity';
 import { Repository, Transaction, TransactionRepository } from 'typeorm';
@@ -200,5 +201,28 @@ export class ContentsService {
     const { id } = contents[index];
 
     return await this.contentRepository.findOne(id);
+  }
+
+  async getList(
+    options: IPaginationOptions,
+    orderBy: 'popularity' | 'latest',
+    tags?: string[],
+  ) {
+    let orderByField = 'createdAt';
+    switch (orderBy) {
+      case 'popularity':
+        orderByField = 'viewCnt';
+    }
+    const queryBuilder = this.contentRepository
+      .createQueryBuilder('content')
+      .leftJoinAndSelect('content.images', 'image')
+      .leftJoinAndSelect('content.tags', 'tag')
+      .orderBy(`content.${orderByField}`, 'DESC');
+
+    if (tags) {
+      queryBuilder.where('tag.name IN (:name)', { name: tags });
+    }
+    const result = await paginate<Content>(queryBuilder, options);
+    return result;
   }
 }
