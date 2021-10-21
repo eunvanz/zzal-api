@@ -213,16 +213,16 @@ export class ContentsService {
       case 'popularity':
         orderByField = 'viewCnt';
     }
-    const queryBuilder = this.contentRepository
-      .createQueryBuilder('content')
-      .leftJoinAndSelect('content.images', 'image')
-      .leftJoinAndSelect('content.tags', 'tag')
-      .orderBy(`content.${orderByField}`, 'DESC');
-
-    if (tags) {
-      queryBuilder.where('tag.name IN (:name)', { name: tags });
-    }
-    const result = await paginate<Content>(queryBuilder, options);
+    const result = await paginate<Content>(this.contentRepository, options, {
+      order: {
+        [orderByField]: 'DESC',
+      },
+      // ...(tags
+      //   ? {
+      //       where: tags.map((name) => ({ tags: { name } })),
+      //     }
+      //   : {}),
+    });
     return result;
   }
 }
