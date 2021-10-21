@@ -49,7 +49,7 @@ export class ContentsController {
   }
 
   @Get()
-  async getList(
+  async getListOrByPath(
     @Query('path') path?: string,
     @Query('orderBy') orderBy: 'popularity' | 'latest' = 'latest',
     @Query('tags') tags?: string[],
