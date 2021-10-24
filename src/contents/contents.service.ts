@@ -224,23 +224,17 @@ export class ContentsService {
       const tag = await this.tagRepository.findOne({
         name: Like(`%${keyword}%`),
       });
-      if (!tag) {
-        throw new NotFoundException();
-      }
-      const contents = await tag.contents;
-      if (!contents.length) {
-        throw new NotFoundException();
-      }
+      const contents = tag ? await tag.contents : [];
       const result = await paginate<Content>(this.contentRepository, options, {
         order: {
           [orderByField]: 'DESC',
         },
         where: [
           {
-            id: In(contents.map((content) => content.id)),
+            path: Like(`%${keyword}%`),
           },
           {
-            path: Like(`%${keyword}%`),
+            id: In(contents.map((content) => content.id)),
           },
         ],
       });
