@@ -52,14 +52,14 @@ export class ContentsController {
   async getListOrByPath(
     @Query('path') path?: string,
     @Query('orderBy') orderBy: 'popularity' | 'latest' = 'latest',
-    @Query('tag') tag?: string,
+    @Query('keyword') keyword?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
   ) {
     if (path) {
       return this.contentsService.getByPath(path);
     } else {
-      return this.contentsService.getList({ page, limit }, orderBy, tag);
+      return this.contentsService.getList({ page, limit }, orderBy, keyword);
     }
   }
 }

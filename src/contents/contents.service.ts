@@ -212,7 +212,7 @@ export class ContentsService {
   async getList(
     options: IPaginationOptions,
     orderBy: 'popularity' | 'latest',
-    tagName?: string,
+    keyword?: string,
   ) {
     let orderByField = 'createdAt';
     switch (orderBy) {
@@ -220,9 +220,9 @@ export class ContentsService {
         orderByField = 'viewCnt';
     }
 
-    if (tagName) {
+    if (keyword) {
       const tag = await this.tagRepository.findOne({
-        name: Like(`%${tagName}%`),
+        name: Like(`%${keyword}%`),
       });
       if (!tag) {
         throw new NotFoundException();
@@ -235,9 +235,14 @@ export class ContentsService {
         order: {
           [orderByField]: 'DESC',
         },
-        where: {
-          id: In(contents.map((content) => content.id)),
-        },
+        where: [
+          {
+            id: In(contents.map((content) => content.id)),
+          },
+          {
+            path: Like(`%${keyword}%`),
+          },
+        ],
       });
       return result;
     } else {
