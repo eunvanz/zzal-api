@@ -9,7 +9,7 @@ import { random } from 'lodash';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { S3Service } from 'src/s3/s3.service';
 import { Tag } from 'src/tags/tags.entity';
-import { Repository, Transaction, TransactionRepository } from 'typeorm';
+import { In, Repository, Transaction, TransactionRepository } from 'typeorm';
 import { Content, Image } from './contents.entity';
 import { CreateContentDto } from './dto/create-content-dto';
 
@@ -170,7 +170,7 @@ export class ContentsService {
   async getByPath(path: string) {
     const content = await this.contentRepository.findOne({ path });
     if (content) {
-      await this.contentRepository.update(content.id, {
+      this.contentRepository.update(content.id, {
         viewCnt: ++content.viewCnt,
       });
       return content;
@@ -206,23 +206,33 @@ export class ContentsService {
   async getList(
     options: IPaginationOptions,
     orderBy: 'popularity' | 'latest',
-    tags?: string[],
+    tagName?: string,
   ) {
     let orderByField = 'createdAt';
     switch (orderBy) {
       case 'popularity':
         orderByField = 'viewCnt';
     }
-    const result = await paginate<Content>(this.contentRepository, options, {
-      order: {
-        [orderByField]: 'DESC',
-      },
-      // ...(tags
-      //   ? {
-      //       where: tags.map((name) => ({ tags: { name } })),
-      //     }
-      //   : {}),
-    });
-    return result;
+
+    if (tagName) {
+      const tag = await this.tagRepository.findOne({ name: tagName });
+      const contents = await tag.contents;
+      const result = await paginate<Content>(this.contentRepository, options, {
+        order: {
+          [orderByField]: 'DESC',
+        },
+        where: {
+          id: In(contents.map((content) => content.id)),
+        },
+      });
+      return result;
+    } else {
+      const result = await paginate<Content>(this.contentRepository, options, {
+        order: {
+          [orderByField]: 'DESC',
+        },
+      });
+      return result;
+    }
   }
 }
