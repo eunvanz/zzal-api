@@ -9,7 +9,13 @@ import { random } from 'lodash';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { S3Service } from 'src/s3/s3.service';
 import { Tag } from 'src/tags/tags.entity';
-import { In, Repository, Transaction, TransactionRepository } from 'typeorm';
+import {
+  In,
+  Like,
+  Repository,
+  Transaction,
+  TransactionRepository,
+} from 'typeorm';
 import { Content, Image } from './contents.entity';
 import { CreateContentDto } from './dto/create-content-dto';
 
@@ -215,8 +221,16 @@ export class ContentsService {
     }
 
     if (tagName) {
-      const tag = await this.tagRepository.findOne({ name: tagName });
+      const tag = await this.tagRepository.findOne({
+        name: Like(`%${tagName}%`),
+      });
+      if (!tag) {
+        throw new NotFoundException();
+      }
       const contents = await tag.contents;
+      if (!contents.length) {
+        throw new NotFoundException();
+      }
       const result = await paginate<Content>(this.contentRepository, options, {
         order: {
           [orderByField]: 'DESC',
