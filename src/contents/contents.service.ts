@@ -1,8 +1,10 @@
+import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import sizeOf from 'image-size';
 import { random } from 'lodash';
@@ -29,6 +31,7 @@ export class ContentsService {
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
     private readonly s3Service: S3Service,
+    private httpService: HttpService,
   ) {}
 
   @Transaction()
@@ -247,5 +250,10 @@ export class ContentsService {
       });
       return result;
     }
+  }
+
+  @Interval(1000 * 60 * 5)
+  warmServer() {
+    this.httpService.get('https://zzal.me/ping');
   }
 }
