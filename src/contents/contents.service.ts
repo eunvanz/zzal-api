@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
+import axios from 'axios';
 import sizeOf from 'image-size';
 import { random } from 'lodash';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
@@ -252,8 +253,8 @@ export class ContentsService {
     }
   }
 
-  @Interval(1000 * 60 * 5)
-  warmServer() {
-    this.httpService.get('https://zzal.me/ping');
+  @Interval(1000 * 60 * 3)
+  async warmServer() {
+    axios.get('https://zzal.me/kbo');
   }
 }
