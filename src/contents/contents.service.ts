@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
@@ -10,6 +11,7 @@ import axios from 'axios';
 import sizeOf from 'image-size';
 import { random } from 'lodash';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
+import * as sharp from 'sharp';
 import { S3Service } from 'src/s3/s3.service';
 import { Tag } from 'src/tags/tags.entity';
 import {
@@ -46,11 +48,49 @@ export class ContentsService {
     if (!files) {
       throw new BadRequestException('Files are required.');
     }
+
+    const isGif = files[1].mimetype.toLowerCase() === 'image/gif';
+    let resizedImageBuffer: Buffer;
+    let resizedThumbnailImageBuffer: Buffer;
+    if (!isGif) {
+      try {
+        resizedImageBuffer = await sharp(files[1].buffer)
+          .resize({ width: 250 })
+          .withMetadata()
+          .toBuffer();
+        resizedThumbnailImageBuffer = await sharp(files[0].buffer)
+          .resize({ width: 250 })
+          .withMetadata()
+          .toBuffer();
+      } catch (error) {
+        throw new InternalServerErrorException(error);
+      }
+    }
+
+    const resizedImageFile: Express.Multer.File = isGif
+      ? files[1]
+      : {
+          ...files[1],
+          buffer: resizedImageBuffer,
+        };
+
+    const resizedThumbnailImageFile: Express.Multer.File = {
+      ...files[0],
+      buffer: resizedThumbnailImageBuffer,
+    };
+
+    const prefixes = ['_thumbnail', '', '_resize'];
+
+    const filesToUpload = [
+      resizedThumbnailImageFile,
+      files[1],
+      resizedImageFile,
+    ];
     const uploadResult = await Promise.all(
-      files.map((file, index) =>
+      filesToUpload.map((file, index) =>
         this.s3Service.upload(
           file,
-          `${createContentDto.path}${index === 0 ? '_thumbnail' : ''}`,
+          `${createContentDto.path}${prefixes[index]}`,
         ),
       ),
     );
@@ -92,13 +132,13 @@ export class ContentsService {
     });
     contentId = savedContent.id;
 
-    const sizes = files.map((file) => sizeOf(file.buffer));
+    const sizes = filesToUpload.map((file) => sizeOf(file.buffer));
 
     const newImages = uploadResult.map((result, index) => ({
       url: result.Location,
       seq: index + 1,
       contentId: contentId,
-      type: files[index].mimetype,
+      type: filesToUpload[index].mimetype,
       width: sizes[index].width,
       height: sizes[index].height,
     }));
