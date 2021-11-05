@@ -52,19 +52,19 @@ export class ContentsService {
     const isGif = files[1].mimetype.toLowerCase() === 'image/gif';
     let resizedImageBuffer: Buffer;
     let resizedThumbnailImageBuffer: Buffer;
-    if (!isGif) {
-      try {
+    try {
+      if (!isGif) {
         resizedImageBuffer = await sharp(files[1].buffer)
           .resize({ width: 250 })
           .withMetadata()
           .toBuffer();
-        resizedThumbnailImageBuffer = await sharp(files[0].buffer)
-          .resize({ width: 250 })
-          .withMetadata()
-          .toBuffer();
-      } catch (error) {
-        throw new InternalServerErrorException(error);
       }
+      resizedThumbnailImageBuffer = await sharp(files[0].buffer)
+        .resize({ width: 250 })
+        .withMetadata()
+        .toBuffer();
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
 
     const resizedImageFile: Express.Multer.File = isGif
