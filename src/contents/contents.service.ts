@@ -55,12 +55,12 @@ export class ContentsService {
     try {
       if (!isGif) {
         resizedImageBuffer = await sharp(files[1].buffer)
-          .resize({ width: 250 })
+          .resize({ width: 500 })
           .withMetadata()
           .toBuffer();
       }
       resizedThumbnailImageBuffer = await sharp(files[0].buffer)
-        .resize({ width: 250 })
+        .resize({ width: 500 })
         .withMetadata()
         .toBuffer();
     } catch (error) {
